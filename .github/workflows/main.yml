@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        default: 'David'
+        required: true
+        
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run a one-live script
+        run: echo "Hello, ${{ github.event.inputs.name }}"
+
+      - name: Run a one-live script
+        run: |
+          echo "Hello, world!2"
+          echo "Hello, world!3"
+      
+    
