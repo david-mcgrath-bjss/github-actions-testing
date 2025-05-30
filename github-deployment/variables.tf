@@ -1,6 +1,6 @@
-variable "tf_state_rg_name" {
+variable "rg_group_name" {
   type        = string
-  description = "The name of the resource group in which the Terraform state storage account will be created."
+  description = "The name of the resource group"
 }
 
 # variable "identity_rg_name" {
@@ -12,10 +12,15 @@ variable "location" {
   description = "The location where the resources will be created."
 }
 
-variable "tags" {
-  description = "A mapping of tags to assign to the resources."
-  type        = map(string)
+variable "env" {
+  type        = string
+  description = "The environment"
 }
+
+# variable "tags" {
+#   description = "A mapping of tags to assign to the resources."
+#   type        = map(string)
+# }
 
 # variable "gh_uai_name" {
 #   description = "The name of the user-assigned managed identity that's used for GitHub Actions"

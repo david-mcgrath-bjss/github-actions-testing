@@ -1,37 +1,190 @@
 name: CI
 on:
+  push:
+    branches:
+    - 'feature/**'
+  pull_request:
+    branches:
+    - main
+    
+
   workflow_dispatch:  
     inputs:
       environment:
         description: 'The env to deploy infra to'
         required: true
         default: 'dev'
-  
+
 env:
-  STORAGE_ACCOUNT_NAME: dmcgightesting${{ inputs.environment }}
-  RESOURCE_GROUP_NAME: rg-terraform-state-${{ inputs.environment }}
-  CONTAINER_NAME: tfstate-${{ inputs.environment }}
-  BLOB_NAME: terraform-${{ inputs.environment }}.tfstate
+  STORAGE_ACCOUNT_NAME: ghatestdam${{ vars.ENV }}
+  RESOURCE_GROUP_NAME: gha-test-sub-${{ vars.ENV }}
+  CONTAINER_NAME: state
+  BLOB_NAME: terraform-${{ vars.ENV }}.tfstate
   WORKING_DIRECTORY: github-deployment
   LOCATION: ukwest
 
 permissions:
   id-token: write     # ← allows GitHub to mint an OIDC token
   contents: read      # ← still needed to check out your code
+  pull-requests: write
         
 jobs:
-  scan-terraform-config:
+  deploy-azure-infra-terraform:
+    name: Deploy to Azure with Terraform 
     runs-on: ubuntu-latest
-    name: Scan Terraform/Bicep with Checov
+    environment: dev
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@master
+    - name: Checkout
+      uses: actions/checkout@v2
+                
+    - name: Login to Azure with Service Principal
+      uses: Azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Run Checkov Scan
-        id: checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: ${{ env.WORKING_DIRECTORY }}
-          soft_fail: false 
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.12.1
+        terraform_wrapper: false    # <— disable the wrapper
+    
+    - name: Terraform Init
+      id: init
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      run: |
+        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME" \
+                       -backend-config="container_name=$CONTAINER_NAME" \
+                       -backend-config="resource_group_name=$RESOURCE_GROUP_NAME" \
+                       -backend-config="key=$BLOB_NAME"
+    
+    - name: Terraform Format
+      run: terraform fmt -check
 
+    - name: terraform-plan
+      id: terraform-plan
+      run: |
+        export exitcode=0
+        terraform plan -detailed-exitcode \
+                        -no-color  \
+                        -out tfplan \
+                        -var-file="tfvars/${{ vars.ENV }}.tfvars"  || export exitcode=$?
+
+        echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+        
+        if [ $exitcode -eq 1 ]; then
+          echo Terraform Plan Failed!
+          exit 1
+        else 
+          exit 0
+        fi
+        
+    - name: Publish Terraform Plan
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan
+        path: tfplan
+        
+    - name: Create String Output
+      id: tf-plan-string
+      run: |
+        TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+        
+        delimiter="$(openssl rand -hex 8)"
+        echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+        echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+        echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo '```terraform' >> $GITHUB_OUTPUT
+        echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+        echo '```' >> $GITHUB_OUTPUT
+        echo "</details>" >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
+        
+    - name: Publish Terraform Plan to Task Summary
+      env:
+        SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+      run: |
+        echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+    
+    - uses: actions/github-script@v7
+      id: get_issue_number
+      with:
+        script: |
+          if (context.issue.number) {
+            // Return issue number if present
+            return context.issue.number;
+          } else {
+            // Otherwise return issue number from commit
+            return (
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                commit_sha: context.sha,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              })
+            ).data[0].number;
+          }
+        result-encoding: string
+
+    - name: Issue number
+      run: echo '${{steps.get_issue_number.outputs.result}}'
+
+    - name: Push Terraform Output to PR
+      if: github.ref != 'refs/heads/main' && steps.get_issue_number.outputs.result !=''
+      uses: actions/github-script@v7
+      env:
+        SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = `${process.env.SUMMARY}`;
+            github.rest.issues.createComment({
+                issue_number: ${{ steps.get_issue_number.outputs.result }},
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+            })
   
+  terraform-apply:
+    name: 'Terraform Apply'
+    if: github.ref == 'refs/heads/main' && needs.terraform-plan.outputs.tfplanExitCode == 2
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: [deploy-azure-infra-terraform]
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
+
+    # Download saved plan from artifacts  
+    - name: Download Terraform Plan
+      uses: actions/download-artifact@v4
+      with:
+        name: tfplan
+
+    # Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
+
+   
