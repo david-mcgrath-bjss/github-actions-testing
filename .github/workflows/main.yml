@@ -86,15 +86,15 @@ jobs:
                         -out "${{ inputs.environment }}-${{ github.run_number }}.tfplan" \
                         -var-file="tfvars/${{ inputs.environment }}.tfvars" 
         
-        # show the tfplan file
-        terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan
-        terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan >> tfplan.json
-        # Format tfplan.json file
-        terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan | jq 
+        # # show the tfplan file
+        # terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan
+        # terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan > tfplan.json
+        # # Format tfplan.json file
+        # terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan | jq 
         
-        # # show only the changes
-        # cat tfplan.json | jq '[.resource_changes[] | {type: .type, name: .change.after.name, actions: .change.actions[]}]' 
-        # cat tfplan.json | jq -r '(.resource_changes[] | [.change.actions[], .type, .change.after.name]) | @tsv'
+        # # # show only the changes
+        # # cat tfplan.json | jq '[.resource_changes[] | {type: .type, name: .change.after.name, actions: .change.actions[]}]' 
+        # # cat tfplan.json | jq -r '(.resource_changes[] | [.change.actions[], .type, .change.after.name]) | @tsv'
 
     - name: Add Terraform Plan Comment
       id: comment
