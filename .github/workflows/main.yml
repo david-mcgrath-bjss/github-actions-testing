@@ -82,6 +82,7 @@ jobs:
       run: |
         # terraform plan -no-color 
         terraform plan  -no-color \
+                        -input=false \
                         -out "${{ inputs.environment }}-${{ github.run_number }}.tfplan" \
                         -var-file="tfvars/${{ inputs.environment }}.tfvars" 
         
