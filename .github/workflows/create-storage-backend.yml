@@ -9,8 +9,6 @@ on:
         default: 'dev'
   
 env:
-  CONTAINER_NAME: tfstate-${{ inputs.environment }}
-  BLOB_NAME: terraform-${{ inputs.environment }}.tfstate
   WORKING_DIRECTORY: github-deployment
   LOCATION: ukwest
 

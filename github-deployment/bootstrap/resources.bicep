@@ -1,4 +1,3 @@
-
 @description('Name of the subscripion to bootstrap')
 param subName string
 
