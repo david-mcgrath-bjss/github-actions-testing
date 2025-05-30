@@ -73,8 +73,8 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check
 
-    - name: Terraform Plan
-      id: tf-plan
+    - name: terraform-plan
+      id: terraform-plan
       run: |
         export exitcode=0
         terraform plan -detailed-exitcode \
@@ -142,7 +142,7 @@ jobs:
       run: echo '${{steps.get_issue_number.outputs.result}}'
 
     - name: Push Terraform Output to PR
-      if: github.ref != 'refs/heads/main'
+      if: github.ref != 'refs/heads/main' && steps.get_issue_number.outputs.result !=''
       uses: actions/github-script@v7
       env:
         SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
@@ -156,6 +156,35 @@ jobs:
                 repo: context.repo.repo,
                 body: body
             })
+  
+  terraform-apply:
+    name: 'Terraform Apply'
+    if: github.ref == 'refs/heads/main' && needs.terraform-plan.outputs.tfplanExitCode == 2
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: [deploy-azure-infra-terraform]
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
 
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
+
+    # Download saved plan from artifacts  
+    - name: Download Terraform Plan
+      uses: actions/download-artifact@v4
+      with:
+        name: tfplan
+
+    # Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
 
    
