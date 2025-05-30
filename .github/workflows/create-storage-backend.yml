@@ -9,8 +9,6 @@ on:
         default: 'dev'
   
 env:
-  STORAGE_ACCOUNT_NAME: dmcgightesting${{ inputs.environment }}
-  RESOURCE_GROUP_NAME: rg-terraform-state-${{ inputs.environment }}
   CONTAINER_NAME: tfstate-${{ inputs.environment }}
   BLOB_NAME: terraform-${{ inputs.environment }}.tfstate
   WORKING_DIRECTORY: github-deployment
@@ -44,38 +42,22 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Create Terraform backend state storage
-      uses: Azure/cli@v1.0.6
+    
+    - name: deploy
+      uses: azure/bicep-deploy@v2
       with:
-        # Azure CLI version to be used to execute the script. If not provided, latest version is used
-        # azcliversion: 2.34.1 # optional, default is agentazcliversion
-        inlineScript: |
-          az version
-
-          # Create resource group
-          az group create --name $RESOURCE_GROUP_NAME --location $LOCATION
-          
-          # Create storage account
-          az storage account create --name $STORAGE_ACCOUNT_NAME \
-             --resource-group $RESOURCE_GROUP_NAME \
-             --sku Standard_LRS \
-             --encryption-services blob
-          
-          # Create blob container
-          az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME
-          
-          # generate backend.tf file
-          cd $WORKING_DIRECTORY
-          cat <<EOT > backend.tf
-          terraform {
-            backend "azurerm" {
-              resource_group_name   = "$RESOURCE_GROUP_NAME"
-              storage_account_name  = "$STORAGE_ACCOUNT_NAME"
-              container_name        = "$CONTAINER_NAME"
-              key                   = "$BLOB_NAME"
-            }
+        name: deploy-terraform-state-storage
+        type: deployment
+        operation: create
+        scope: subscription
+        location: ukwest
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        template-file: ./github-deployment/bootstrap/main.bicep
+        parameters: |
+          {
+            "subName":       "${{ inputs.environment }}",
+            "principalId":   "${{ secrets.AZURE_PRINCIPAL_ID }}"
           }
-          EOT
+
           
-          cat backend.tf
+

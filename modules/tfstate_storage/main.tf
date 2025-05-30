@@ -4,7 +4,6 @@ resource "azurerm_storage_account" "account" {
   # checkov:skip=CKV_AZURE_33 reason="Queue service is not used in this storage account"
   # checkov:skip=CKV2_AZURE_1 reason="Allow use of MS managed keys for encryption"
   # checkov:skip=CKV2_AZURE_33 reason="Don't require private endpoint"
-  
   name = var.storage_account_name
   location = var.location
   resource_group_name = var.resource_group_name
@@ -30,19 +29,18 @@ resource "azurerm_storage_container" "container" {
   # checkov:skip=CKV_AZURE_33 reason="Queue service is not used in this storage account"
   # checkov:skip=CKV2_AZURE_1 reason="Allow use of MS managed keys for encryption"
   # checkov:skip=CKV2_AZURE_33 reason="Don't require private endpoint"
-  
   name = var.container_name
   storage_account_name = azurerm_storage_account.account.name
   container_access_type = "private"
 }
 
-resource "azurerm_storage_container" "automatic_container" {
-  # checkov:skip=CKV2_AZURE_21 reason="Don't log blob read requests as no log analytics"
-  # checkov:skip=CKV_AZURE_33 reason="Queue service is not used in this storage account"
-  # checkov:skip=CKV2_AZURE_1 reason="Allow use of MS managed keys for encryption"
-  # checkov:skip=CKV2_AZURE_33 reason="Don't require private endpoint"
+# resource "azurerm_storage_container" "automatic_container" {
+#   # checkov:skip=CKV2_AZURE_21 reason="Don't log blob read requests as no log analytics"
+#   # checkov:skip=CKV_AZURE_33 reason="Queue service is not used in this storage account"
+#   # checkov:skip=CKV2_AZURE_1 reason="Allow use of MS managed keys for encryption"
+#   # checkov:skip=CKV2_AZURE_33 reason="Don't require private endpoint"
 
-  name = var.automatic_container_name
-  storage_account_name = azurerm_storage_account.account.name
-  container_access_type = "private"
-}
+#   name = var.automatic_container_name
+#   storage_account_name = azurerm_storage_account.account.name
+#   container_access_type = "private"
+# }
