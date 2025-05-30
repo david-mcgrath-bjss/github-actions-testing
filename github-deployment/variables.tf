@@ -12,6 +12,11 @@ variable "location" {
   description = "The location where the resources will be created."
 }
 
+variable "env" {
+  type        = string
+  description = "The environment"
+}
+
 # variable "tags" {
 #   description = "A mapping of tags to assign to the resources."
 #   type        = map(string)
