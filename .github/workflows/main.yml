@@ -80,7 +80,6 @@ jobs:
         terraform plan -detailed-exitcode \
                         -no-color  \
                         -out tfplan \
-                        -input=false \
                         -var-file="tfvars/${{ inputs.environment }}.tfvars"  || export exitcode=$?
 
         echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
