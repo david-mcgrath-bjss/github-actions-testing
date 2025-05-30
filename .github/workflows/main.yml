@@ -90,7 +90,7 @@ jobs:
         terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan
         terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan >> tfplan.json
         # Format tfplan.json file
-        terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan | jq '.' > tfplan.json
+        terraform show -json ${{ inputs.environment }}-${{ github.run_number }}.tfplan | jq '.' 
         
         # show only the changes
         cat tfplan.json | jq '[.resource_changes[] | {type: .type, name: .change.after.name, actions: .change.actions[]}]' 
