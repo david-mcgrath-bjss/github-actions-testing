@@ -15,6 +15,7 @@ on:
         default: 'dev'
 
 env:
+  ENV: ${{ vars.ENV }}
   STORAGE_ACCOUNT_NAME: ghatestdam${{ vars.ENV }}
   RESOURCE_GROUP_NAME: gha-test-sub-${{ vars.ENV }}
   CONTAINER_NAME: state
@@ -28,11 +29,10 @@ permissions:
         
 jobs:
   deploy-azure-infra-terraform:
-    if: ${{ vars.ENV == 'dev' }}
     name: Deploy to Azure with Terraform
     runs-on: ubuntu-latest
     environment: 
-      name: dev
+      name: "${{ vars.ENV }}"
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
