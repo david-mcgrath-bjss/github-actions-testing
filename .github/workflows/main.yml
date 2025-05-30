@@ -81,6 +81,8 @@ jobs:
                         -no-color  \
                         -out tfplan \
                         -var-file="tfvars/${{ inputs.environment }}.tfvars"  || export exitcode=$?
+                      
+        echo "exitcode=$exitcode   [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]"
 
         echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         
