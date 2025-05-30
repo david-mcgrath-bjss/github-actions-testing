@@ -2,11 +2,9 @@
 
 # }
 
-module "tf_resource_group" {
-  source   = "../modules/resource_group"
-  name     = var.tf_state_rg_name
+resource "azurerm_resource_group" "rg" {
+  name     = var.rg_group_name
   location = var.location
-  tags     = var.tags
 }
 
 # module "identity-resource-group" {
