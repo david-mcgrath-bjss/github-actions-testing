@@ -15,7 +15,7 @@ on:
   
 env:
   STORAGE_ACCOUNT_NAME: ghatestdam${{ inputs.environment }}
-  RESOURCE_GROUP_NAME: gha-test-sub--${{ inputs.environment }}
+  RESOURCE_GROUP_NAME: gha-test-sub-${{ inputs.environment }}
   CONTAINER_NAME: state
   BLOB_NAME: terraform-${{ inputs.environment }}.tfstate
   WORKING_DIRECTORY: github-deployment
