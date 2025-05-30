@@ -15,7 +15,6 @@ on:
         default: 'dev'
 
 env:
-  ENV: ${{ vars.ENV }}
   STORAGE_ACCOUNT_NAME: ghatestdam${{ vars.ENV }}
   RESOURCE_GROUP_NAME: gha-test-sub-${{ vars.ENV }}
   CONTAINER_NAME: state
@@ -31,8 +30,7 @@ jobs:
   deploy-azure-infra-terraform:
     name: Deploy to Azure with Terraform 
     runs-on: ubuntu-latest
-    environment: 
-      name: dev
+    environment: dev
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -44,7 +42,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
                 
-    - name: Login ${{ vars.ENV }} to Azure with Service Principal
+    - name: Login to Azure with Service Principal
       uses: Azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
