@@ -29,7 +29,7 @@ permissions:
         
 jobs:
   deploy-azure-infra-terraform:
-    name: Deploy to Azure with Terraform ${{ vars.ENV }}
+    name: Deploy to Azure with Terraform 
     runs-on: ubuntu-latest
     environment: 
       name: dev
@@ -44,7 +44,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
                 
-    - name: Login to Azure with Service Principal
+    - name: Login ${{ vars.ENV }} to Azure with Service Principal
       uses: Azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
