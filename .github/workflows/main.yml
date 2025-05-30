@@ -119,7 +119,7 @@ jobs:
       run: |
         echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
     
-    - uses: actions/github-script@v6
+    - uses: actions/github-script@v7
       id: get_issue_number
       with:
         script: |
@@ -140,7 +140,6 @@ jobs:
 
     - name: Issue number
       run: echo '${{steps.get_issue_number.outputs.result}}'
-
 
 
 
