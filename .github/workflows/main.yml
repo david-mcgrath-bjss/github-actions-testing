@@ -28,6 +28,7 @@ permissions:
         
 jobs:
   deploy-azure-infra-terraform:
+    if: ${{ vars.ENV == 'dev' }}
     name: Deploy to Azure with Terraform
     runs-on: ubuntu-latest
     environment: 
