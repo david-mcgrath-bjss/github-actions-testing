@@ -25,6 +25,7 @@ env:
 permissions:
   id-token: write     # ← allows GitHub to mint an OIDC token
   contents: read      # ← still needed to check out your code
+  pull-requests: write
         
 jobs:
   deploy-azure-infra-terraform:
