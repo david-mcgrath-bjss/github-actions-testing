@@ -173,6 +173,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     needs: [plan-azure-infra-terraform]
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIRECTORY }}
     
     steps:
     # Checkout the repository to the GitHub Actions runner
