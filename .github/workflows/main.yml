@@ -216,7 +216,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: tfplan
-        path: "${{ env.WORKING_DIRECTORY }}/tfplan"
+        path: "${{ env.WORKING_DIRECTORY }}"
 
     # Terraform Apply
     - name: Terraform Apply
