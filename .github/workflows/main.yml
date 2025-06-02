@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     outputs:
-      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+      tfplanExitCode: ${{ steps.terraform-plan.outputs.exitcode }}
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
