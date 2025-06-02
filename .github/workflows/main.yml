@@ -136,13 +136,9 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
               })
-            ).data[0];
+            ).data[0].issue.number;
           }
         result-encoding: string
-
-    - name: Pull Request data
-      run: |
-        echo '${{ steps.get_issue_number.outputs.result }}'
 
     - name: Issue number
       run: echo '${{steps.get_issue_number.outputs.result}}'
