@@ -50,6 +50,7 @@ jobs:
     - name: Print event name
       run: | 
        echo "This run was triggered by: ${{ github.event_name }}"
+       echo "Working Dir: ${{ env.WORKING_DIRECTORY }}"
                 
     - name: Login to Azure with Service Principal
       uses: Azure/login@v2
@@ -102,7 +103,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: tfplan
-        path: tfplan
+        path: "${{ env.WORKING_DIRECTORY }}/tfplan"
         
     - name: Create String Output
       id: tf-plan-string
